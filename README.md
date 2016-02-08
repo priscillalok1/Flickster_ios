@@ -42,7 +42,7 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-![Video Walkthrough](flicksterGiphy_small.gif)
+![Video Walkthrough](flicksterGiphy.gif)
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
