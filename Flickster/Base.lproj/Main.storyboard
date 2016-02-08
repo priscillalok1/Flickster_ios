@@ -5,7 +5,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
     </dependencies>
     <scenes>
-        <!--Movies-->
+        <!--Flickster-->
         <scene sceneID="tne-QT-ifu">
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="MoviesViewController" customModule="Flickster" customModuleProvider="target" sceneMemberID="viewController">
@@ -110,7 +110,7 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Movies" id="Eq3-le-Qv6"/>
+                    <navigationItem key="navigationItem" title="Flickster" id="Eq3-le-Qv6"/>
                     <connections>
                         <outlet property="backgroundLayerView" destination="wTc-Wu-lT5" id="bcm-YG-MHP"/>
                         <outlet property="offlineView" destination="Fes-tw-zEe" id="bbS-En-x18"/>
