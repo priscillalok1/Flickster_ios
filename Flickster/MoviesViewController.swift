@@ -40,6 +40,12 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         
         let textSearchField: UITextField = self.searchBar.valueForKey("_searchField") as! UITextField
         textSearchField.backgroundColor = primaryColor
+        textSearchField.textColor = secondaryColor
+        
+        UIBarButtonItem.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).tintColor = primaryColor
+      //  self.searchBar.setValue(<#T##value: AnyObject?##AnyObject?#>, forKey: <#T##String#>)
+  //      let uiButton = searchBar.valueForKey("_cancelButton") as! UIButton
+        
        // textSearchField.textColor = primaryColor
         self.searchBar.barTintColor = secondaryColor
     
