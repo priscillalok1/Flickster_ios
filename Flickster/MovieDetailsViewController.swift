@@ -37,24 +37,25 @@ class MovieDetailsViewController: UIViewController {
             //set default image
         }
         
+        //set title
         titleLabel.text = movieTitle
         if releaseDate != nil {
             releaseDateLabel.text = "Released: \(releaseDate!)"
         }
         
+        //set star ratings
         starRatingsView.settings.fillMode = .Half
         starRatingsView.rating = rating!/2.0
         overviewLabel.text = overview
         overviewLabel.sizeToFit()
         
+        //set dimensions of movie details box
         var contentRect = CGRectUnion(movieDetailsView.frame, overviewLabel.frame)
-        let paddingView: CGRect = CGRectMake(7.0, contentRect.height, overviewLabel.frame.width, 30.0)
-        
+        let paddingView: CGRect = CGRectMake(7.0, contentRect.height, overviewLabel.frame.width, 30.0) //padding at bottom of movie details box
         
         contentRect = CGRectUnion(contentRect, paddingView)
-        
         detailsScrollView.contentSize = contentRect.size
-        
+
         let width = self.view.frame.width
         let height = movieDetailsView.frame.height
         let yPosition = self.view.frame.height - height

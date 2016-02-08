@@ -11,9 +11,9 @@ import AFNetworking
 import M13ProgressSuite
 
 class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UITabBarDelegate {
+    
     @IBOutlet weak var backgroundLayerView: UIView!
     @IBOutlet weak var tabBar: UITabBar!
-
     @IBOutlet weak var offlineView: UIView!
     @IBOutlet weak var tableView: UITableView!
     
@@ -22,67 +22,58 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     var useSearchResults: Bool?
 
     var movies: [NSDictionary]?
-    var refreshControl: UIRefreshControl = UIRefreshControl()
-    
     var topRatedMovies: [NSDictionary]?
     var nowPlayingMovies: [NSDictionary]?
+    
+    var refreshControl: UIRefreshControl = UIRefreshControl()
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        //set color schemes
         let primaryColor: UIColor = UIColor(red: 0.05, green: 0.14, blue: 0.22, alpha: 1.0)
         let secondaryColor: UIColor = UIColor(red: 0.42, green: 0.52, blue: 0.62, alpha: 1.0)
+        
         self.backgroundLayerView.backgroundColor = primaryColor
 
         self.tableView.backgroundColor = primaryColor
         self.tableView.separatorStyle = UITableViewCellSeparatorStyle.None
         
-        
         let textSearchField: UITextField = self.searchBar.valueForKey("_searchField") as! UITextField
         textSearchField.backgroundColor = primaryColor
         textSearchField.textColor = secondaryColor
+        self.searchBar.barTintColor = secondaryColor
         
         UIBarButtonItem.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).tintColor = primaryColor
-      //  self.searchBar.setValue(<#T##value: AnyObject?##AnyObject?#>, forKey: <#T##String#>)
-  //      let uiButton = searchBar.valueForKey("_cancelButton") as! UIButton
-        
-       // textSearchField.textColor = primaryColor
-        self.searchBar.barTintColor = secondaryColor
-    
-        
+
         self.tabBar.barTintColor = primaryColor
         UITabBar.appearance().tintColor = UIColor(red: 0.32, green: 0.42, blue: 0.52, alpha: 1.0)
-
-        useSearchResults = false
         
+        //initialize and set up tableview
         tableView.dataSource = self
         tableView.delegate = self
         self.offlineView.hidden = true
         makeRequestToAPI()
         
-        
+        //initialize and set up refresh control
         refreshControl.addTarget(self, action: "refreshControlAction:", forControlEvents: UIControlEvents.ValueChanged)
         tableView.insertSubview(refreshControl, atIndex: 0)
-        self.searchBar.delegate = self
         
+        //initialize and set up search bar
+        self.searchBar.delegate = self
+        useSearchResults = false
+        
+        //initialize and set up tab bar
         self.tabBar.delegate = self
         self.tabBar.selectedItem = self.tabBar.items![0]
         
-        
-//        self.tabBar.delegate = self;
-//        [self.tabBar setSelectedItem:[self.tabBar.items objectAtIndex:0]];
-//        self.selected = @"movies";
-    }
-
-    @IBAction func onTap(sender: AnyObject) {
-        view.endEditing(true)
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
+    //# MARK: Obtain movie data methods
     func makeRequestToAPI() {
         
         var nowPlayingRequestDone = false
@@ -90,15 +81,15 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         
         self.navigationController?.showProgress()
         self.navigationController?.setProgress(0, animated: true)
+        
+        //now_playing API call
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
         let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
-//        let request = NSURLRequest(URL: url!, cachePolicy: NSURLRequestCachePolicy.ReturnCacheDataElseLoad, timeoutInterval: 60.0)
-        let request = NSURLRequest(URL: url!)
+        let request = NSURLRequest(URL: url!, cachePolicy: NSURLRequestCachePolicy.ReturnCacheDataElseLoad, timeoutInterval: 60.0)
         let session = NSURLSession(
             configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
             delegate: nil,
             delegateQueue: NSOperationQueue.mainQueue())
-        
         let task : NSURLSessionDataTask = session.dataTaskWithRequest(request,
             completionHandler: {(dataOrNil, response, error) in
                 if error != nil {
@@ -108,6 +99,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                 if let data = dataOrNil {
                     if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(data, options: []) as? NSDictionary {
                         self.nowPlayingMovies = responseDictionary["results"] as? [NSDictionary]
+                        //assign movies based on which tab is selected
                         if (self.tabBar.items?.indexOf(self.tabBar.selectedItem!))! == 0{
                             self.movies = self.nowPlayingMovies
                         } else {
@@ -132,6 +124,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
             })
         task.resume()
         
+        //top_rated API call
         let topRatedUrl = NSURL(string: "https://api.themoviedb.org/3/movie/top_rated?api_key=\(apiKey)")
         let topRatedRequest = NSURLRequest(URL: topRatedUrl!, cachePolicy: NSURLRequestCachePolicy.ReturnCacheDataElseLoad, timeoutInterval: 60.0)
         let topRatedSession = NSURLSession(
@@ -170,42 +163,42 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                     self.tableView.reloadData()
                     
                 }
-
         })
         topRatedTask.resume()
+    }
+    
+    
+    //# MARK: Navigation methods
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        let vc = segue.destinationViewController as! MovieDetailsViewController
+        let indexPath = tableView.indexPathForCell(sender as! UITableViewCell)
+        let currentMovies: [NSDictionary]? = self.getCurrentMovies()
         
-    }
-    
-    func tabBar(tabBar: UITabBar, didSelectItem item: UITabBarItem) {
-        let selectedIndex = tabBar.items?.indexOf(item)
-        if selectedIndex == 0 {
-            self.movies = self.nowPlayingMovies
-        } else {
-            self.movies = self.topRatedMovies
-        }
-        self.tableView.reloadData()
-    }
-    
-    
-    func getCurrentMovies() -> [NSDictionary] {
-        if self.useSearchResults == true {
-            if self.searchResults != nil {
-                return self.searchResults!
+        //
+        if currentMovies != nil {
+            let movie = currentMovies![(indexPath?.row)!]
+            if let posterPath = movie["poster_path"] as? String {
+                let posterBaseUrl = "http://image.tmdb.org/t/p/w500"
+                let posterUrl = posterBaseUrl + posterPath
+                vc.posterUrl = posterUrl
+                
             }
-            else {
-                return []
-            }
-        }
-        else {
-            if self.movies != nil{
-                return self.movies!
-            }
-            else {
-                return []
-            }
+            let title = movie["title"] as? String
+            vc.movieTitle = title
+            
+            let rating = movie["vote_average"] as? Double
+            vc.rating = rating
+            
+            let releaseDate = movie["release_date"] as? String
+            vc.releaseDate = releaseDate
+            
+            let overview = movie["overview"] as? String
+            vc.overview = overview
         }
     }
     
+    
+    //# MARK: TableView Methods
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.getCurrentMovies().count
     }
@@ -214,16 +207,21 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         let cell = tableView.dequeueReusableCellWithIdentifier("MovieCell", forIndexPath: indexPath) as! MovieCell
         cell.selectionStyle = .Gray
         var movie :NSDictionary = [:]
+        
+        //determine which array to parse movie from
         if self.useSearchResults == false {
             movie = movies![indexPath.row]
         } else {
             movie = self.searchResults![indexPath.row]
         }
+        
         let title = movie["title"] as! String
         if let posterPath = movie["poster_path"] as? String {
             let posterBaseUrl = "http://image.tmdb.org/t/p/w500"
             let posterUrl = NSURL(string: posterBaseUrl + posterPath)
             let imageRequest = NSURLRequest(URL: posterUrl!)
+            
+            //set image in cell
             cell.posterView.setImageWithURLRequest(
                 imageRequest,
                 placeholderImage: nil,
@@ -251,44 +249,27 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
             // that you include as an asset
             cell.posterView.image = nil
         }
+        
+        //set title
+        cell.titleLabel.text = title
+        
+        //set star ratings
         cell.starRatingView.settings.fillMode = .Half
         cell.starRatingView.rating = (movie["vote_average"] as? Double)!/2.0
-        
-        cell.titleLabel.text = title
+
         return cell
-        
     }
     
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        let vc = segue.destinationViewController as! MovieDetailsViewController
-        let indexPath = tableView.indexPathForCell(sender as! UITableViewCell)
-        let currentMovies: [NSDictionary]? = self.getCurrentMovies()
-        if currentMovies != nil {
-            let movie = currentMovies![(indexPath?.row)!]
-            if let posterPath = movie["poster_path"] as? String {
-                let posterBaseUrl = "http://image.tmdb.org/t/p/w500"
-                let posterUrl = posterBaseUrl + posterPath
-                vc.posterUrl = posterUrl
-                
-            }
-            let title = movie["title"] as? String
-            vc.movieTitle = title
-            
-            let rating = movie["vote_average"] as? Double
-            vc.rating = rating
-            
-            let releaseDate = movie["release_date"] as? String
-            vc.releaseDate = releaseDate
-            
-            let overview = movie["overview"] as? String
-            vc.overview = overview
+    //# MARK: Tab Bar Methods
+    //tab bar for selection between now_playing and top_rated movies
+    func tabBar(tabBar: UITabBar, didSelectItem item: UITabBarItem) {
+        let selectedIndex = tabBar.items?.indexOf(item)
+        if selectedIndex == 0 {
+            self.movies = self.nowPlayingMovies
+        } else {
+            self.movies = self.topRatedMovies
         }
-    }
-
-
-    // Makes a network request to get updated data
-    func refreshControlAction(refreshControl: UIRefreshControl) {
-        makeRequestToAPI()
+        self.tableView.reloadData()
     }
     
     //# MARK: Search Methods
@@ -301,6 +282,26 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         self.useSearchResults = true
         self.searchBar.showsCancelButton = true
         self.getSearchResultsForSearchText(searchBar.text!)
+    }
+    
+    //function to either get search results or entire list of movies
+    func getCurrentMovies() -> [NSDictionary] {
+        if self.useSearchResults == true {
+            if self.searchResults != nil {
+                return self.searchResults!
+            }
+            else {
+                return []
+            }
+        }
+        else {
+            if self.movies != nil{
+                return self.movies!
+            }
+            else {
+                return []
+            }
+        }
     }
     
     func getSearchResultsForSearchText(searchText: String)
