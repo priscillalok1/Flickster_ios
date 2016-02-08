@@ -14,7 +14,7 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = 'primary'
-               BlueprintIdentifier = '49B9941D684BDCBA070337AA'
+               BlueprintIdentifier = 'E820E318647D60264196BF9D'
                BlueprintName = 'Pods-Flickster'
                ReferencedContainer = 'container:Pods.xcodeproj'
                BuildableName = 'Pods_Flickster.framework'>

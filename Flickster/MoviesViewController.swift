@@ -10,8 +10,9 @@ import UIKit
 import AFNetworking
 import M13ProgressSuite
 
-
-class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
+class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UITabBarDelegate {
+    @IBOutlet weak var backgroundLayerView: UIView!
+    @IBOutlet weak var tabBar: UITabBar!
 
     @IBOutlet weak var offlineView: UIView!
     @IBOutlet weak var tableView: UITableView!
@@ -23,9 +24,29 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     var movies: [NSDictionary]?
     var refreshControl: UIRefreshControl = UIRefreshControl()
     
+    var topRatedMovies: [NSDictionary]?
+    var nowPlayingMovies: [NSDictionary]?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        let primaryColor: UIColor = UIColor(red: 0.05, green: 0.14, blue: 0.22, alpha: 1.0)
+        let secondaryColor: UIColor = UIColor(red: 0.42, green: 0.52, blue: 0.62, alpha: 1.0)
+        self.backgroundLayerView.backgroundColor = primaryColor
+
+        self.tableView.backgroundColor = primaryColor
+        self.tableView.separatorStyle = UITableViewCellSeparatorStyle.None
         
+        
+        let textSearchField: UITextField = self.searchBar.valueForKey("_searchField") as! UITextField
+        textSearchField.backgroundColor = primaryColor
+       // textSearchField.textColor = primaryColor
+        self.searchBar.barTintColor = secondaryColor
+    
+        
+        self.tabBar.barTintColor = primaryColor
+        UITabBar.appearance().tintColor = UIColor(red: 0.32, green: 0.42, blue: 0.52, alpha: 1.0)
+
         useSearchResults = false
         
         tableView.dataSource = self
@@ -33,23 +54,40 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         self.offlineView.hidden = true
         makeRequestToAPI()
         
+        
         refreshControl.addTarget(self, action: "refreshControlAction:", forControlEvents: UIControlEvents.ValueChanged)
         tableView.insertSubview(refreshControl, atIndex: 0)
         self.searchBar.delegate = self
+        
+        self.tabBar.delegate = self
+        self.tabBar.selectedItem = self.tabBar.items![0]
+        
+        
+//        self.tabBar.delegate = self;
+//        [self.tabBar setSelectedItem:[self.tabBar.items objectAtIndex:0]];
+//        self.selected = @"movies";
     }
 
+    @IBAction func onTap(sender: AnyObject) {
+        view.endEditing(true)
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
     
     func makeRequestToAPI() {
+        
+        var nowPlayingRequestDone = false
+        var topRatedRequestDone = false
+        
         self.navigationController?.showProgress()
         self.navigationController?.setProgress(0, animated: true)
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
         let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
-   //     let request = NSURLRequest(URL: url!)
-        let request = NSURLRequest(URL: url!, cachePolicy: NSURLRequestCachePolicy.ReturnCacheDataElseLoad, timeoutInterval: 60.0)
+//        let request = NSURLRequest(URL: url!, cachePolicy: NSURLRequestCachePolicy.ReturnCacheDataElseLoad, timeoutInterval: 60.0)
+        let request = NSURLRequest(URL: url!)
         let session = NSURLSession(
             configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
             delegate: nil,
@@ -57,89 +95,160 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         
         let task : NSURLSessionDataTask = session.dataTaskWithRequest(request,
             completionHandler: {(dataOrNil, response, error) in
-                if let data = dataOrNil
-                {
-                    if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(data, options: []) as? NSDictionary
-                    {
-                        self.movies = responseDictionary["results"] as? [NSDictionary]
+                if error != nil {
+                    self.offlineView.hidden = false
+                    return
+                }
+                if let data = dataOrNil {
+                    if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(data, options: []) as? NSDictionary {
+                        self.nowPlayingMovies = responseDictionary["results"] as? [NSDictionary]
+                        if (self.tabBar.items?.indexOf(self.tabBar.selectedItem!))! == 0{
+                            self.movies = self.nowPlayingMovies
+                        } else {
+                            self.movies = self.topRatedMovies
+                        }
                         self.searchResults = self.movies
                         self.tableView.reloadData()
                     }
                     self.offlineView.hidden = true
                 }
-                if error != nil
-                {
+                
+                nowPlayingRequestDone = true
+                self.refreshControl.endRefreshing()
+                
+                if nowPlayingRequestDone == true && topRatedRequestDone == true {
+                    self.navigationController?.setProgress(1, animated: true)
+                    self.navigationController?.setProgress(0, animated: false)
+                    self.navigationController?.finishProgress()
+                    self.tableView.reloadData()
+
+                }
+            })
+        task.resume()
+        
+        let topRatedUrl = NSURL(string: "https://api.themoviedb.org/3/movie/top_rated?api_key=\(apiKey)")
+        let topRatedRequest = NSURLRequest(URL: topRatedUrl!, cachePolicy: NSURLRequestCachePolicy.ReturnCacheDataElseLoad, timeoutInterval: 60.0)
+        let topRatedSession = NSURLSession(
+            configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
+            delegate: nil,
+            delegateQueue: NSOperationQueue.mainQueue())
+        
+        let topRatedTask : NSURLSessionDataTask = topRatedSession.dataTaskWithRequest(topRatedRequest,
+            completionHandler: {(dataOrNil, response, error) in
+                if error != nil {
                     self.offlineView.hidden = false
                     return
                 }
+                if let data = dataOrNil {
+                    if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(data, options: []) as? NSDictionary {
+                        self.topRatedMovies = responseDictionary["results"] as? [NSDictionary]
+                        if (self.tabBar.items?.indexOf(self.tabBar.selectedItem!))! == 0{
+                            self.movies = self.nowPlayingMovies
+                        } else {
+                            self.movies = self.topRatedMovies
+                        }
+                        self.searchResults = self.movies
+                        
+                        self.tableView.reloadData()
+                    }
+                    self.offlineView.hidden = true
+                }
                 
-                self.navigationController?.setProgress(1, animated: true)
-                self.navigationController?.setProgress(0, animated: false)
-                self.navigationController?.finishProgress()
+                topRatedRequestDone = true
                 self.refreshControl.endRefreshing()
-                self.tableView.reloadData()
-            })
-        task.resume()
+                
+                if nowPlayingRequestDone == true && topRatedRequestDone == true {
+                    self.navigationController?.setProgress(1, animated: true)
+                    self.navigationController?.setProgress(0, animated: false)
+                    self.navigationController?.finishProgress()
+                    self.tableView.reloadData()
+                    
+                }
+
+        })
+        topRatedTask.resume()
+        
     }
+    
+    func tabBar(tabBar: UITabBar, didSelectItem item: UITabBarItem) {
+        let selectedIndex = tabBar.items?.indexOf(item)
+        if selectedIndex == 0 {
+            self.movies = self.nowPlayingMovies
+        } else {
+            self.movies = self.topRatedMovies
+        }
+        self.tableView.reloadData()
+    }
+    
     
     func getCurrentMovies() -> [NSDictionary] {
         if self.useSearchResults == true {
-            return self.searchResults!
+            if self.searchResults != nil {
+                return self.searchResults!
+            }
+            else {
+                return []
+            }
         }
         else {
-            return self.movies!
+            if self.movies != nil{
+                return self.movies!
+            }
+            else {
+                return []
+            }
         }
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if let movies = movies {
-            return movies.count
-        } else {
-            return 0
-        }
-        
+        return self.getCurrentMovies().count
     }
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("MovieCell", forIndexPath: indexPath) as! MovieCell
+        cell.selectionStyle = .Gray
+        var movie :NSDictionary = [:]
         if self.useSearchResults == false {
-            let movie = movies![indexPath.row]
-            let title = movie["title"] as! String
-            if let posterPath = movie["poster_path"] as? String {
-                let posterBaseUrl = "http://image.tmdb.org/t/p/w500"
-                let posterUrl = NSURL(string: posterBaseUrl + posterPath)
-                cell.posterView.setImageWithURL(posterUrl!)
-            }
-            else {
-                // No poster image. Can either set to nil (no image) or a default movie poster image
-                // that you include as an asset
-                cell.posterView.image = nil
-            }
-            cell.starRatingView.settings.fillMode = .Half
-            cell.starRatingView.rating = (movie["vote_average"] as? Double)!/2.0
-            
-            cell.titleLabel.text = title
+            movie = movies![indexPath.row]
         } else {
-            let movie = self.searchResults![indexPath.row]
-            print (indexPath.row)
-            print (searchResults?.count)
-            let title = movie["title"] as! String
-            if let posterPath = movie["poster_path"] as? String {
-                let posterBaseUrl = "http://image.tmdb.org/t/p/w500"
-                let posterUrl = NSURL(string: posterBaseUrl + posterPath)
-                cell.posterView.setImageWithURL(posterUrl!)
-            }
-            else {
-                // No poster image. Can either set to nil (no image) or a default movie poster image
-                // that you include as an asset
-                cell.posterView.image = nil
-            }
-            cell.starRatingView.settings.fillMode = .Half
-            cell.starRatingView.rating = (movie["vote_average"] as? Double)!/2.0
-            
-            cell.titleLabel.text = title
+            movie = self.searchResults![indexPath.row]
         }
+        let title = movie["title"] as! String
+        if let posterPath = movie["poster_path"] as? String {
+            let posterBaseUrl = "http://image.tmdb.org/t/p/w500"
+            let posterUrl = NSURL(string: posterBaseUrl + posterPath)
+            let imageRequest = NSURLRequest(URL: posterUrl!)
+            cell.posterView.setImageWithURLRequest(
+                imageRequest,
+                placeholderImage: nil,
+                success: { (imageRequest, imageResponse, image) -> Void in
+                    
+                    // imageResponse will be nil if the image is cached
+                    if imageResponse != nil {
+                        print("Image was NOT cached, fade in image")
+                        cell.posterView.alpha = 0.0
+                        cell.posterView.image = image
+                        UIView.animateWithDuration(0.3, animations: { () -> Void in
+                            cell.posterView.alpha = 1.0
+                        })
+                    } else {
+                        print("Image was cached so just update the image")
+                        cell.posterView.image = image
+                    }
+                },
+                failure: { (imageRequest, imageResponse, error) -> Void in
+            })
+            cell.posterView.contentMode = .ScaleAspectFill
+        }
+        else {
+            // No poster image. Can either set to nil (no image) or a default movie poster image
+            // that you include as an asset
+            cell.posterView.image = nil
+        }
+        cell.starRatingView.settings.fillMode = .Half
+        cell.starRatingView.rating = (movie["vote_average"] as? Double)!/2.0
         
+        cell.titleLabel.text = title
         return cell
         
     }
@@ -147,22 +256,19 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         let vc = segue.destinationViewController as! MovieDetailsViewController
         let indexPath = tableView.indexPathForCell(sender as! UITableViewCell)
-        if  self.movies != nil {
-            let movie = self.movies![indexPath!.row]
-            
+        let currentMovies: [NSDictionary]? = self.getCurrentMovies()
+        if currentMovies != nil {
+            let movie = currentMovies![(indexPath?.row)!]
             if let posterPath = movie["poster_path"] as? String {
                 let posterBaseUrl = "http://image.tmdb.org/t/p/w500"
                 let posterUrl = posterBaseUrl + posterPath
                 vc.posterUrl = posterUrl
-
+                
             }
             let title = movie["title"] as? String
             vc.movieTitle = title
             
-            let language = movie["original_language"] as? String
-            vc.language = language
-                
-            let rating = movie["vote_average"] as? String
+            let rating = movie["vote_average"] as? Double
             vc.rating = rating
             
             let releaseDate = movie["release_date"] as? String
@@ -170,7 +276,6 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
             
             let overview = movie["overview"] as? String
             vc.overview = overview
-
         }
     }
 
@@ -216,16 +321,20 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         let results: [NSDictionary] = (self.movies! as NSArray).filteredArrayUsingPredicate(predicate) as! [NSDictionary]
         return results
     }
-
-    func searchBarTextDidEndEditing(searchBar: UISearchBar) {
-        self.searchBar.showsCancelButton = false
-        self.useSearchResults = false
-        self.tableView.reloadData()
-    }
  
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
         self.useSearchResults = false
+        self.searchBar.text = ""
         self.searchBar.endEditing(true)
+        self.searchBar.showsCancelButton = false
+        self.tableView.reloadData()
+    }
+    
+    func searchBarSearchButtonClicked(searchBar: UISearchBar) {
+        self.useSearchResults = true
+        self.view.endEditing(true)
+        self.searchBar.showsCancelButton = false
+        self.tableView.reloadData()
     }
 
 

@@ -18,11 +18,17 @@ class MovieCell: UITableViewCell {
     @IBOutlet weak var posterView: UIImageView!
     override func awakeFromNib() {
         super.awakeFromNib()
+        self.backgroundColor = UIColor(red: 0, green: 0.1647, blue: 0.3176, alpha: 1.0)
+        let mGradient = CAGradientLayer()
+        mGradient.frame = posterView.bounds
+        var colors = [CGColor]()
+        colors.append(UIColor(red: 0, green: 0, blue: 0, alpha: 0.9).CGColor)
+        colors.append(UIColor(red: 0, green: 0, blue: 0, alpha: 0).CGColor)
+        mGradient.colors = colors
+        mGradient.startPoint = CGPointMake(0.5, 0.5)
+        mGradient.endPoint = CGPointMake(0.5, 0.2)
         
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.frame = self.bounds
-        gradientLayer.colors = [UIColor.greenColor(), UIColor.blueColor()]
-        movieDetailsCellView.layer.insertSublayer(gradientLayer, atIndex: 0)
+        posterView.layer.addSublayer(mGradient)
         // Initialization code
     }
 

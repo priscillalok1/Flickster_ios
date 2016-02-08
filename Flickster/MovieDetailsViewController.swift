@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Cosmos
 
 class MovieDetailsViewController: UIViewController {
 
@@ -14,17 +15,18 @@ class MovieDetailsViewController: UIViewController {
     @IBOutlet weak var posterImageView: UIImageView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var releaseDateLabel: UILabel!
-    @IBOutlet weak var languageLabel: UILabel!
-    @IBOutlet weak var ratingLabel: UILabel!
     @IBOutlet weak var overviewLabel: UILabel!
     @IBOutlet weak var movieDetailsView: UIView!
+    @IBOutlet weak var starRatingsView: CosmosView!
     
     var movieTitle: String?
     var posterUrl: String?
-    var language: String?
+    
     var overview: String?
     var releaseDate: String?
-    var rating: String?
+    var rating: Double?
+    
+    var detailsIsExpanded: Bool?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,19 +38,64 @@ class MovieDetailsViewController: UIViewController {
         }
         
         titleLabel.text = movieTitle
-        releaseDateLabel.text = releaseDate
-        languageLabel.text = language
-        ratingLabel.text = rating
+        if releaseDate != nil {
+            releaseDateLabel.text = "Released: \(releaseDate!)"
+        }
+        
+        starRatingsView.settings.fillMode = .Half
+        starRatingsView.rating = rating!/2.0
         overviewLabel.text = overview
         overviewLabel.sizeToFit()
         
-        let contentRect = CGRectUnion(movieDetailsView.frame, overviewLabel.frame)
-
+        var contentRect = CGRectUnion(movieDetailsView.frame, overviewLabel.frame)
+        let paddingView: CGRect = CGRectMake(7.0, contentRect.height, overviewLabel.frame.width, 30.0)
+        
+        
+        contentRect = CGRectUnion(contentRect, paddingView)
+        
         detailsScrollView.contentSize = contentRect.size
-
-
+        
+        let width = self.view.frame.width
+        let height = movieDetailsView.frame.height
+        let yPosition = self.view.frame.height - height
+        let xPosition:CGFloat = 0.0
+        
+        self.detailsScrollView.frame = CGRectMake(xPosition, yPosition, width, height)
+        detailsIsExpanded = false
+        
     }
 
+    @IBAction func onTapMovieDetails(sender: AnyObject) {
+        
+        
+        if detailsIsExpanded == false {
+            let height = min(detailsScrollView.contentSize.height, self.view.frame.height)
+            let width = self.view.frame.width
+            let xPosition = detailsScrollView.frame.origin.x
+            let yPosition = self.view.frame.height - height
+            
+            UIView.animateWithDuration(0.5, animations: {
+                
+                self.detailsScrollView.frame = CGRectMake(xPosition, yPosition, width, height)
+                
+            })
+            detailsIsExpanded = true
+        }
+        
+        else if detailsIsExpanded == true {
+            let width = self.view.frame.width
+            let height = movieDetailsView.frame.height
+            let yPosition = self.view.frame.height - height
+            let xPosition:CGFloat = 0.0
+            
+            UIView.animateWithDuration(0.5, animations: {
+                self.detailsScrollView.frame = CGRectMake(xPosition, yPosition, width, height)
+            })
+            detailsIsExpanded = false
+        }
+       
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
