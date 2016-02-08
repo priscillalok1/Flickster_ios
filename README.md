@@ -17,6 +17,7 @@ The following **required** functionality is completed:
     * To prevent any pop ups and cleaner UI I added a progress bar at the top that displays when an API call is in progress
 - [x] User sees an error message when there is a network error.
     * When API call returns an error, offline view will display
+    ![Network Error Screenshot](errorScreensho.png)
 - [x] User can pull to refresh the movie list.
     * UIRefreshControl connected to tableView
 
@@ -41,7 +42,7 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-![Video Walkthrough](flicksterGiphy.gif)
+![Video Walkthrough](flicksterGiphy_2.gif)
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
