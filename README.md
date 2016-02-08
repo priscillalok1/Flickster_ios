@@ -30,12 +30,11 @@ The following **optional** features are implemented:
     * standard animations functionality to fade images in as they are loading on screen
 - [x] Customize the navigation bar.
     * Styling to match color scheme
-- [ ] Implement segmented control to switch between list view and grid view.
 
 The following **additional** features are implemented:
 
 - [x] Star ratings
-    * I wanted to have an easy visual for users to see the ratings of movies instead of just a rating number.  I utilized Cosmos CocoaPods to accomplish this.
+    * I wanted to have an easy visual for users to see the ratings of movies instead of just a rating number.  I utilized [Cosmos CocoaPods](https://github.com/marketplacer/Cosmos) to accomplish this.
 - [x] View animations for movie details
     * User can expand/contract overview text in movie details view
 ## Video Walkthrough
@@ -48,7 +47,7 @@ GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 ## Notes
 
-The two biggest challenges were implementing the search bar and implementing a gradient view for the bottom of each cell.  The search bar was difficult to implement since there were lots of variables to consider with the filtered data, and edge cases for when the user clicks the cancel button, the search button, etc.  I also spent a long time with the gradient view and animations for the movie details view since it took me a while to grasp an understanding of CGRect.  
+The two biggest challenges were implementing the search bar and implementing a gradient view for the bottom of each cell.  The search bar was difficult to implement since there were lots of variables to consider with the filtered data, and edge cases for when the user clicks the cancel button, the search button, etc.  I also spent a long time with the gradient view and animations for the movie details view since it took me a while to grasp an understanding of CGRect.  Additionally, I spent some time figuring out the dimensions of the poster images in the table view cell and in the details view as to not distort the image yet still maintain an appropriate crop of the poster image in the views.
 
 ## License
 
