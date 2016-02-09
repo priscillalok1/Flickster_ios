@@ -18,6 +18,7 @@ class MovieDetailsViewController: UIViewController {
     @IBOutlet weak var overviewLabel: UILabel!
     @IBOutlet weak var movieDetailsView: UIView!
     @IBOutlet weak var starRatingsView: CosmosView!
+    @IBOutlet weak var detailsViewStateImage: UIImageView!
     
     var movieTitle: String?
     var posterUrl: String?
@@ -63,6 +64,7 @@ class MovieDetailsViewController: UIViewController {
         
         self.detailsScrollView.frame = CGRectMake(xPosition, yPosition, width, height)
         detailsIsExpanded = false
+        detailsViewStateImage.image = UIImage(named: "white_plus_sign_icon")
         
     }
 
@@ -81,6 +83,7 @@ class MovieDetailsViewController: UIViewController {
                 
             })
             detailsIsExpanded = true
+            detailsViewStateImage.image = UIImage(named: "white_minus_sign")
         }
         
         else if detailsIsExpanded == true {
@@ -93,6 +96,7 @@ class MovieDetailsViewController: UIViewController {
                 self.detailsScrollView.frame = CGRectMake(xPosition, yPosition, width, height)
             })
             detailsIsExpanded = false
+            detailsViewStateImage.image = UIImage(named: "white_plus_sign_icon")
         }
        
     }

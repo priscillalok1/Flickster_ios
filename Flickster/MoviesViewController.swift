@@ -167,6 +167,11 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         topRatedTask.resume()
     }
     
+    // Makes a network request to get updated data
+    func refreshControlAction(refreshControl: UIRefreshControl) {
+        makeRequestToAPI()
+        self.tableView.reloadData()
+    }
     
     //# MARK: Navigation methods
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
@@ -174,7 +179,6 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         let indexPath = tableView.indexPathForCell(sender as! UITableViewCell)
         let currentMovies: [NSDictionary]? = self.getCurrentMovies()
         
-        //
         if currentMovies != nil {
             let movie = currentMovies![(indexPath?.row)!]
             if let posterPath = movie["poster_path"] as? String {

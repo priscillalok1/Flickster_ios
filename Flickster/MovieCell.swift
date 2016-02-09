@@ -10,8 +10,7 @@ import UIKit
 import Cosmos
 
 class MovieCell: UITableViewCell {
-
-
+    
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var starRatingView: CosmosView!
     @IBOutlet weak var movieDetailsCellView: UIView!
@@ -19,7 +18,9 @@ class MovieCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         self.backgroundColor = UIColor(red: 0, green: 0.1647, blue: 0.3176, alpha: 1.0)
-        
+        let backgroundView = UIView()
+        self.selectionStyle = UITableViewCellSelectionStyle.Gray
+        self.selectedBackgroundView = backgroundView
         //set gradient at the bottom of each cell in tableview
         let mGradient = CAGradientLayer()
         mGradient.frame = posterView.bounds
@@ -39,5 +40,7 @@ class MovieCell: UITableViewCell {
 
         // Configure the view for the selected state
     }
+    
+    
 
 }
